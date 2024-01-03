@@ -29,40 +29,26 @@ async function run() {
     const AddRecipeCollection = client
       .db("AddRecipeDB")
       .collection("Recipes");
-    const AddCartReviews = client.db("CartRecipeDB").collection("Reviews");
+    const AddAddReviews = client.db("AddRecipeDB").collection("Reviews");
 
     // --------------------------------AddRecipeCollection Data Collection Server--------------------------------------
 
     //<------------------Payments Info Database----------------->
 
-    // app.post("/create-payment-intent", async (req, res) => {
-    //   const { price } = req.body;
-    //   const amount = parseInt(price * 100);
 
-    //   const paymentIntent = await stripe.paymentIntents.create({
-    //     amount: amount,
-    //     currency: "usd",
-    //     payment_method_types: ["card"],
-    //   });
-
-    //   res.send({
-    //     clientSecret: paymentIntent.client_secret,
-    //   });
-    // });
-
-    // // Insert Reviews Data Into Database:
-    // app.post("/reviews", async (req, res) => {
-    //   const Reviews = req.body;
-    //   const result = await AddCartReviews.insertOne(Reviews);
-    //   res.send(result);
-    // });
-    // // Read Id Specific Review From Database:
-    // app.get("/reviewsGet/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { proId:id };
-    //   const result = await AddCartReviews.find(query).toArray();
-    //   res.send(result);
-    // });
+    // Insert Reviews Data Into Database:
+    app.post("/reviews", async (req, res) => {
+      const Reviews = req.body;
+      const result = await AddAddReviews.insertOne(Reviews);
+      res.send(result);
+    });
+    // Read Id Specific Review From Database:
+    app.get("/reviewsGet/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { proId:id };
+      const result = await AddAddReviews.find(query).toArray();
+      res.send(result);
+    });
 
     // Insert General Data Into Database:
     app.post("/addRecipe", async (req, res) => {
@@ -115,7 +101,7 @@ async function run() {
       }
     });
 
-    // Read With Id From All Cart Recipe From Database:
+    // Read With Id From All Add Recipe From Database:
     app.get("/addRecipe/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -123,6 +109,24 @@ async function run() {
       res.send(result);
     });
 
+    // Update Rating Data in Database
+    app.patch("/addRecipeRating/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.query.rating;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          rating: data,
+        },
+      };
+      const result = await AddRecipeCollection.updateOne(
+        query,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
     // Update Data in Database
     app.patch("/addRecipe/:id", async (req, res) => {
       const id = req.params.id;
@@ -144,23 +148,6 @@ async function run() {
         updateDoc,
         options
       );
-      res.send(result);
-    });
-
-    // Insert Cart Data Into Database:
-    app.post("/cartRecipe", async (req, res) => {
-      const addingCartRecipes = req.body;
-      const result = await AddCartRecipeCollection.insertOne(
-        addingCartRecipes
-      );
-      res.send(result);
-    });
-
-    // Read All Cart Recipe From Database:
-    app.get("/cartRecipe", async (req, res) => {
-      const cursor = AddCartRecipeCollection.find();
-      const result = await cursor.toArray();
-
       res.send(result);
     });
 
