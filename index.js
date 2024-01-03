@@ -4,7 +4,7 @@ require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5010;
 
 // middleWare
 app.use(cors());
@@ -29,44 +29,40 @@ async function run() {
     const AddRecipeCollection = client
       .db("AddRecipeDB")
       .collection("Recipes");
-    // Database For Add Recipe in the cart
-    const AddCartRecipeCollection = client
-      .db("CartRecipeDB")
-      .collection("CartData");
     const AddCartReviews = client.db("CartRecipeDB").collection("Reviews");
 
     // --------------------------------AddRecipeCollection Data Collection Server--------------------------------------
 
     //<------------------Payments Info Database----------------->
 
-    app.post("/create-payment-intent", async (req, res) => {
-      const { price } = req.body;
-      const amount = parseInt(price * 100);
+    // app.post("/create-payment-intent", async (req, res) => {
+    //   const { price } = req.body;
+    //   const amount = parseInt(price * 100);
 
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount,
-        currency: "usd",
-        payment_method_types: ["card"],
-      });
+    //   const paymentIntent = await stripe.paymentIntents.create({
+    //     amount: amount,
+    //     currency: "usd",
+    //     payment_method_types: ["card"],
+    //   });
 
-      res.send({
-        clientSecret: paymentIntent.client_secret,
-      });
-    });
+    //   res.send({
+    //     clientSecret: paymentIntent.client_secret,
+    //   });
+    // });
 
-    // Insert Reviews Data Into Database:
-    app.post("/reviews", async (req, res) => {
-      const Reviews = req.body;
-      const result = await AddCartReviews.insertOne(Reviews);
-      res.send(result);
-    });
-    // Read Id Specific Review From Database:
-    app.get("/reviewsGet/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { proId:id };
-      const result = await AddCartReviews.find(query).toArray();
-      res.send(result);
-    });
+    // // Insert Reviews Data Into Database:
+    // app.post("/reviews", async (req, res) => {
+    //   const Reviews = req.body;
+    //   const result = await AddCartReviews.insertOne(Reviews);
+    //   res.send(result);
+    // });
+    // // Read Id Specific Review From Database:
+    // app.get("/reviewsGet/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { proId:id };
+    //   const result = await AddCartReviews.find(query).toArray();
+    //   res.send(result);
+    // });
 
     // Insert General Data Into Database:
     app.post("/addRecipe", async (req, res) => {
@@ -139,9 +135,7 @@ async function run() {
           name: data.name,
           brand_name: data.brand_name,
           type: data.type,
-          price: data.price,
           description: data.description,
-          rating: data.rating,
           photo: data.photo,
         },
       };
@@ -171,11 +165,11 @@ async function run() {
     });
 
     // Delete Data From Database
-    app.delete("/cartRecipe/:id", async (req, res) => {
+    app.delete("/deleteRecipe/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
 
-      const result = await AddCartRecipeCollection.deleteOne(query);
+      const result = await AddRecipeCollection.deleteOne(query);
       res.send(result);
     });
 
